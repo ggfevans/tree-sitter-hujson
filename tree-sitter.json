@@ -19,7 +19,7 @@
       }
     ],
     "links": {
-      "repository": "https://github.com/ggfevans/zed-hujson"
+      "repository": "https://github.com/ggfevans/tree-sitter-hujson"
     }
   }
 }

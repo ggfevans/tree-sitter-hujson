@@ -88,3 +88,18 @@ NaN
       (string
         (string_content))
       (UNEXPECTED 'N'))))
+
+==================
+Numeric object key
+==================
+
+{1: "x"}
+
+---
+
+(document
+  (object
+    (ERROR
+      (number)
+      (string
+        (string_content)))))

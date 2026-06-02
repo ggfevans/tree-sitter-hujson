@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-hujson",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "HuJSON (JWCC) grammar for tree-sitter — JSON with comments and trailing commas",
   "license": "MIT",
   "author": "Gareth Evans <hi@gvns.ca>",

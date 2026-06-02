@@ -1,0 +1,244 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Validate tag format
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::Tag '$TAG' does not match SemVer format (vX.Y.Z or vX.Y.Z-prerelease)"
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          # Extract the changelog section for this version.
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Escape regex-significant dots so e.g. 0.2.0 cannot match 0x2y0.
+          ESCAPED_VERSION="$(printf '%s' "$VERSION" | sed 's/\./\\./g')"
+          # Grab everything from this version's header up to and including the
+          # next "## [" header (or EOF for the oldest entry).
+          sed -n "/^## \[$ESCAPED_VERSION\]/,/^## \[/p" CHANGELOG.md > release_notes.md
+          # The sed range is inclusive, so for any entry that is followed by a
+          # later "## [" header that trailing header line is captured too. Strip
+          # it — but ONLY if the last line is actually a "## [" header, so the
+          # oldest entry (which ends at EOF, no trailing header) is not clipped.
+          if tail -n 1 release_notes.md | grep -q '^## \['; then
+            sed -i '$d' release_notes.md
+          fi
+          echo "Extracted release notes for v$VERSION"
+
+      - name: Verify release notes exist
+        run: |
+          if [ ! -s release_notes.md ]; then
+            echo "::error::No changelog entry found for v${{ steps.version.outputs.VERSION }}. Ensure CHANGELOG.md has a '## [X.Y.Z]' header matching this version."
+            exit 1
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # npm: build native prebuilds across linux/macOS/windows, then publish with
+  # provenance. Auth via secrets.NPM_TOKEN. Publishing is a no-op until the
+  # NPM_TOKEN secret is configured.
+  # ---------------------------------------------------------------------------
+  npm-prebuild:
+    name: npm prebuild (${{ matrix.os }})
+    needs: release
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        # This project intentionally ships no lockfile (Cargo.lock / go.sum are
+        # gitignored too), so use `npm install` rather than `npm ci`, which
+        # requires a committed package-lock.json.
+        run: npm install --no-audit --no-fund
+
+      - name: Build prebuilds
+        run: npm run prebuildify
+
+      - name: Upload prebuilds
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: prebuilds-${{ matrix.os }}
+          path: prebuilds/
+          if-no-files-found: error
+
+  npm-publish:
+    name: npm publish
+    needs: npm-prebuild
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for npm provenance
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        # This project intentionally ships no lockfile (Cargo.lock / go.sum are
+        # gitignored too), so use `npm install` rather than `npm ci`, which
+        # requires a committed package-lock.json.
+        run: npm install --no-audit --no-fund
+
+      - name: Download all prebuilds
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          pattern: prebuilds-*
+          path: prebuilds/
+          merge-multiple: true
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # PyPI: build wheels (via the [tool.cibuildwheel] config) and an sdist, then
+  # publish with OIDC Trusted Publishing — no stored token. Requires a one-time
+  # PyPI trusted-publisher configuration for this repo/workflow.
+  # ---------------------------------------------------------------------------
+  pypi-wheels:
+    name: PyPI wheels (${{ matrix.os }})
+    needs: release
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: dist-wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  pypi-sdist:
+    name: PyPI sdist
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist
+        run: |
+          python -m pip install --upgrade build
+          python -m build --sdist --outdir dist/
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: dist-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  pypi-publish:
+    name: PyPI publish
+    needs: [pypi-wheels, pypi-sdist]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for PyPI Trusted Publishing (OIDC)
+    steps:
+      - name: Download all distributions
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          pattern: dist-*
+          path: dist/
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
+        with:
+          packages-dir: dist/
+
+  # ---------------------------------------------------------------------------
+  # crates.io: publish the Rust binding. Auth via secrets.CARGO_REGISTRY_TOKEN.
+  # ---------------------------------------------------------------------------
+  crates-publish:
+    name: crates.io publish
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # stable
+        with:
+          toolchain: stable
+
+      - name: Publish to crates.io
+        run: cargo publish -p tree-sitter-hujson
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # Go / Swift / C bindings are consumed directly via the git tag
+  # (go get / SwiftPM / pkg-config), so the tag + GitHub Release created above
+  # is sufficient — no registry-publish step is required for them.
+  # ---------------------------------------------------------------------------

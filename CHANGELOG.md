@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pinned the tree-sitter CLI version used in CI and assert that `tree-sitter
   generate` is a no-op against the committed `src/` files. (#14)
 - Added query soundness and zero-`ERROR`-node sample-parse gates. (#14)
+- Added a tag-driven release workflow publishing to npm, PyPI, and crates.io;
+  each registry publish is skipped unless its credential is configured. (#15, #20)
 
 ## [0.1.0]
 

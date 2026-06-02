@@ -28,7 +28,7 @@ VERSION="$1"
 # Validate SemVer (matches the tag check in .github/workflows/release.yml,
 # minus the leading 'v'). This also guarantees VERSION contains no characters
 # that are special to sed, so it is safe to interpolate into the patterns below.
-if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+if ! printf '%s' "$VERSION" | grep -qE '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$'; then
   echo "error: '$VERSION' is not a valid SemVer version (expected X.Y.Z or X.Y.Z-prerelease)" >&2
   exit 1
 fi

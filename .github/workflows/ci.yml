@@ -21,11 +21,11 @@ jobs:
           node-version: "22"
 
       - name: Install tree-sitter-cli
-        run: npm install -g tree-sitter-cli
+        run: npm install -g tree-sitter-cli@0.26.9
 
       - name: Generate parser (must be a no-op against committed files)
         run: |
-          tree-sitter generate
+          tree-sitter generate --abi 14
           git diff --exit-code -- src/
 
       - name: Run corpus tests

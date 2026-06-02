@@ -111,3 +111,17 @@ Object with all value types
         (pair
           key: (string (string_content))
           value: (true))))))
+
+==================
+Empty-string key
+==================
+
+{"": 1}
+
+---
+
+(document
+  (object
+    (pair
+      key: (string)
+      value: (number))))

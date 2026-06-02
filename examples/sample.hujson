@@ -36,4 +36,11 @@
     "tag:dev":  ["group:admins"],
     "tag:prod": ["group:admins"],
   },
+
+  // Edge cases: empty-string key, empty object, empty array.
+  "edgeCases": {
+    "": "empty key",
+    "emptyObject": {},
+    "emptyArray": [],
+  },
 }

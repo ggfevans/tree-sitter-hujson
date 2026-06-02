@@ -3,7 +3,7 @@
     {
       "name": "hujson",
       "scope": "source.hujson",
-      "file-types": ["hujson"],
+      "file-types": ["hujson", "jwcc"],
       "injection-regex": "hujson",
       "highlights": "queries/highlights.scm"
     }

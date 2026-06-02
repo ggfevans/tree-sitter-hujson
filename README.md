@@ -9,6 +9,8 @@ HuJSON is a strict superset of JSON that adds exactly two features:
 
 All valid JSON is valid HuJSON. HuJSON intentionally rejects all other extensions (unquoted keys, hex literals, `Infinity`/`NaN`, single-quoted strings, etc.).
 
+The grammar registers both the `.hujson` and `.jwcc` file extensions.
+
 ## Provenance
 
 Forked from [`tree-sitter/tree-sitter-json`](https://github.com/tree-sitter/tree-sitter-json) at commit [`001c28d`](https://github.com/tree-sitter/tree-sitter-json/commit/001c28d7a29832b06b0e831ec77845553c89b56d).

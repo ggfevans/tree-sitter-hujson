@@ -64,13 +64,43 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---------------------------------------------------------------------------
+  # preflight: detect which registry credentials are configured so each publish
+  # job below can skip (not fail) when its credential is absent. GitHub Actions
+  # cannot reference secrets.* in a job-level `if:`, so presence is surfaced here
+  # as job outputs. PyPI uses OIDC (no secret to detect) and is gated on the
+  # opt-in repo variable PYPI_TRUSTED_PUBLISHER ('true' once a PyPI trusted
+  # publisher exists for this repo/workflow).
+  # ---------------------------------------------------------------------------
+  preflight:
+    name: Detect configured registries
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      npm: ${{ steps.flags.outputs.npm }}
+      crates: ${{ steps.flags.outputs.crates }}
+      pypi: ${{ steps.flags.outputs.pypi }}
+    steps:
+      - id: flags
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          PYPI_FLAG: ${{ vars.PYPI_TRUSTED_PUBLISHER }}
+        run: |
+          {
+            echo "npm=$([ -n "$NPM_TOKEN" ] && echo true || echo false)"
+            echo "crates=$([ -n "$CARGO_REGISTRY_TOKEN" ] && echo true || echo false)"
+            echo "pypi=$([ "$PYPI_FLAG" = "true" ] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
   # npm: build native prebuilds across linux/macOS/windows, then publish with
-  # provenance. Auth via secrets.NPM_TOKEN. Publishing is a no-op until the
-  # NPM_TOKEN secret is configured.
+  # provenance. Auth via secrets.NPM_TOKEN. These jobs are SKIPPED (not failed)
+  # until the NPM_TOKEN secret is configured.
   # ---------------------------------------------------------------------------
   npm-prebuild:
     name: npm prebuild (${{ matrix.os }})
-    needs: release
+    needs: [release, preflight]
+    if: ${{ needs.preflight.outputs.npm == 'true' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -105,7 +135,8 @@ jobs:
 
   npm-publish:
     name: npm publish
-    needs: npm-prebuild
+    needs: [npm-prebuild, preflight]
+    if: ${{ needs.preflight.outputs.npm == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -140,12 +171,14 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # PyPI: build wheels (via the [tool.cibuildwheel] config) and an sdist, then
-  # publish with OIDC Trusted Publishing — no stored token. Requires a one-time
-  # PyPI trusted-publisher configuration for this repo/workflow.
+  # publish with OIDC Trusted Publishing — no stored token. These jobs are
+  # SKIPPED until the repo variable PYPI_TRUSTED_PUBLISHER is set to 'true'
+  # (set it once a PyPI trusted publisher exists for this repo/workflow).
   # ---------------------------------------------------------------------------
   pypi-wheels:
     name: PyPI wheels (${{ matrix.os }})
-    needs: release
+    needs: [release, preflight]
+    if: ${{ needs.preflight.outputs.pypi == 'true' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -170,7 +203,8 @@ jobs:
 
   pypi-sdist:
     name: PyPI sdist
-    needs: release
+    needs: [release, preflight]
+    if: ${{ needs.preflight.outputs.pypi == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -197,7 +231,8 @@ jobs:
 
   pypi-publish:
     name: PyPI publish
-    needs: [pypi-wheels, pypi-sdist]
+    needs: [pypi-wheels, pypi-sdist, preflight]
+    if: ${{ needs.preflight.outputs.pypi == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -217,10 +252,12 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # crates.io: publish the Rust binding. Auth via secrets.CARGO_REGISTRY_TOKEN.
+  # SKIPPED until that secret is configured.
   # ---------------------------------------------------------------------------
   crates-publish:
     name: crates.io publish
-    needs: release
+    needs: [release, preflight]
+    if: ${{ needs.preflight.outputs.crates == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

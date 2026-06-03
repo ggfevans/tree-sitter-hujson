@@ -1,72 +1,100 @@
 # tree-sitter-hujson
 
-A [tree-sitter](https://tree-sitter.github.io) grammar for [HuJSON](https://github.com/tailscale/hujson) (Human JSON) — also known as [JWCC](https://nigeltao.github.io/blog/2021/json-with-commas-comments.html) (JSON With Commas and Comments).
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![SemVer](https://img.shields.io/badge/semver-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
+[![tree-sitter ABI](https://img.shields.io/badge/tree--sitter%20ABI-14-blue)](https://tree-sitter.github.io/tree-sitter/)
+[![CI](https://github.com/ggfevans/tree-sitter-hujson/actions/workflows/ci.yml/badge.svg)](https://github.com/ggfevans/tree-sitter-hujson/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/ggfevans/tree-sitter-hujson?logo=github)](https://github.com/ggfevans/tree-sitter-hujson/releases/latest)
+[![npm](https://img.shields.io/npm/v/tree-sitter-hujson?logo=npm)](https://www.npmjs.com/package/tree-sitter-hujson)
+[![PyPI](https://img.shields.io/pypi/v/tree-sitter-hujson?logo=pypi&logoColor=white)](https://pypi.org/project/tree-sitter-hujson/)
+[![crates.io](https://img.shields.io/crates/v/tree-sitter-hujson?logo=rust)](https://crates.io/crates/tree-sitter-hujson)
+
+A [tree-sitter](https://tree-sitter.github.io) grammar for [HuJSON](https://github.com/tailscale/hujson) (Human JSON), also known as [JWCC](https://nigeltao.github.io/blog/2021/json-with-commas-comments.html) (JSON With Commas and Comments).
 
 HuJSON is a strict superset of JSON that adds exactly two features:
 
-- **C-style comments** — line comments (`//`) and block comments (`/* */`)
-- **Trailing commas** — optional trailing comma after the last element in arrays and objects
+- **C-style comments**: line comments (`//`) and block comments (`/* */`)
+- **Trailing commas**: an optional trailing comma after the last element in arrays and objects
 
-All valid JSON is valid HuJSON. HuJSON intentionally rejects all other extensions (unquoted keys, hex literals, `Infinity`/`NaN`, single-quoted strings, etc.).
+All valid JSON is valid HuJSON. HuJSON intentionally rejects every other extension (unquoted keys, hex literals, `Infinity`/`NaN`, single-quoted strings, and so on); object keys must be quoted strings, exactly as in standard JSON.
 
 The grammar registers both the `.hujson` and `.jwcc` file extensions.
 
-## Provenance
+## Installation
 
-Forked from [`tree-sitter/tree-sitter-json`](https://github.com/tree-sitter/tree-sitter-json) at commit [`001c28d`](https://github.com/tree-sitter/tree-sitter-json/commit/001c28d7a29832b06b0e831ec77845553c89b56d).
+The grammar is published to npm, PyPI, and crates.io. Each package exposes the compiled language for use with that ecosystem's tree-sitter bindings.
 
-The only semantic change is the `commaSep` helper, which now allows an optional trailing comma:
+Each example needs the `tree-sitter` runtime for that language alongside this grammar.
 
-```js
-function commaSep1(rule) {
-  return seq(rule, repeat(seq(',', rule)), optional(','));
-}
-```
-
-The upstream grammar already supported comments, so no further changes were needed.
-
-## Consumers
-
-- **Zed** — via the [`ggfevans/zed-hujson`](https://github.com/ggfevans/zed-hujson) extension
-- **Neovim / Helix** — usable directly via the standard tree-sitter grammar interface
-
-## Development
-
-### Prerequisites
-
-- Node.js 18+
-- `tree-sitter-cli` (`npm install -g tree-sitter-cli`)
-
-### Build & test
+### npm (Node.js)
 
 ```bash
-tree-sitter generate
-tree-sitter test
+npm install tree-sitter tree-sitter-hujson
 ```
 
-The corpus suite covers literals, objects, arrays, comments, trailing commas, degenerate inputs (empty/whitespace/BOM/unicode/deeply nested), and invalid inputs (the strictness-preserving rejections).
+```js
+const Parser = require("tree-sitter");
+const HuJSON = require("tree-sitter-hujson");
 
-## Releasing
+const parser = new Parser();
+parser.setLanguage(HuJSON);
+```
 
-Releases are tag-driven. Bump the version in every manifest at once with
-`scripts/bump-version.sh X.Y.Z`, add a matching `## [X.Y.Z]` entry to
-[`CHANGELOG.md`](CHANGELOG.md), then push a `vX.Y.Z` tag. The
-[`Release`](.github/workflows/release.yml) workflow creates the GitHub Release
-and publishes the bindings.
+### PyPI (Python)
 
-Registry publishing degrades gracefully — each publish job runs **only** when
-its credential is configured, otherwise it is skipped (the GitHub Release always
-succeeds):
+```bash
+pip install "tree-sitter-hujson[core]"
+```
 
-| Registry | Enable by configuring |
-| --- | --- |
-| npm | repo secret `NPM_TOKEN` |
-| crates.io | repo secret `CARGO_REGISTRY_TOKEN` |
-| PyPI | repo **variable** `PYPI_TRUSTED_PUBLISHER` = `true` (after setting up a [PyPI trusted publisher](https://docs.pypi.org/trusted-publishers/) for this repo + `release.yml`; uses OIDC, no token) |
+```python
+import tree_sitter_hujson
+from tree_sitter import Language, Parser
 
-To publish a registry you enabled *after* a tag was already cut, re-run the
-`Release` workflow for that tag — the now-present credential flips its job on.
+parser = Parser(Language(tree_sitter_hujson.language()))
+```
+
+### crates.io (Rust)
+
+```bash
+cargo add tree-sitter tree-sitter-hujson
+```
+
+```rust
+let mut parser = tree_sitter::Parser::new();
+parser
+    .set_language(&tree_sitter_hujson::language())
+    .expect("loading HuJSON grammar");
+```
+
+### Go, Swift, and C
+
+These bindings ship in the repository and are consumed directly from the tagged source rather than a package registry.
+
+## Editor support
+
+- **Zed**: install the [`ggfevans/zed-hujson`](https://github.com/ggfevans/zed-hujson) extension. This is the only editor integration maintained and tested here.
+- **Other tree-sitter hosts** (for example Neovim via nvim-treesitter, or Helix): this is a standard tree-sitter grammar and can be registered through each host's normal grammar mechanism.
+
+Markdown code blocks fenced as ` ```hujson ` are highlighted in editors that resolve fence languages by name (verified in Zed). This works through the declared language scope and name; it needs no `injections.scm` on the grammar side, because the host Markdown grammar supplies the injection.
+
+## Provenance
+
+Forked from [`tree-sitter/tree-sitter-json`](https://github.com/tree-sitter/tree-sitter-json) at commit [`001c28d`](https://github.com/tree-sitter/tree-sitter-json/commit/001c28d7a29832b06b0e831ec77845553c89b56d). The upstream grammar already supported comments, so HuJSON support needed only two changes:
+
+1. **Trailing commas.** The `commaSep` helper now allows an optional trailing comma:
+
+   ```js
+   function commaSep1(rule) {
+     return seq(rule, repeat(seq(",", rule)), optional(","));
+   }
+   ```
+
+2. **String-only object keys.** Upstream tree-sitter-json accepts numeric object keys (`choice($.string, $.number)`); HuJSON restricts keys to strings to match standard JSON, so bare numeric keys are parse errors. This tightened in v0.2.0.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development setup, the test suite, and the release process.
 
 ## Licence
 
-[MIT](LICENSE) — matches the upstream tree-sitter-json licence.
+[MIT](LICENSE), matching the upstream tree-sitter-json licence.

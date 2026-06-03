@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1]
+
+### CI
+
+- Moved the CI and release workflows off the deprecated Node 20 actions
+  runtime to Node 24 majors (`actions/checkout`, `actions/setup-node`,
+  `actions/upload-artifact`, `actions/download-artifact`, `actions/setup-python`,
+  `softprops/action-gh-release`) ahead of GitHub's 2026-06-16 forced migration,
+  and SHA-pinned every action in both workflows. No change to the published
+  grammar, parser, or language bindings. (#38)
+
 ## [1.0.0]
 
 ### Added
@@ -106,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Highlight, brackets, indents, and outline queries.
 - Corpus tests and an example `examples/sample.hujson`.
 
+[1.0.1]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.3...v1.0.0
 [0.2.3]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.1...v0.2.2

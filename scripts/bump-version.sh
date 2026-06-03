@@ -11,9 +11,14 @@
 #   - Makefile          (VERSION := X.Y.Z)
 #   - SECURITY.md       (supported version row in the table)
 #
-# Idempotent: re-running with the current version is a no-op. Each edit is
-# anchored to the specific field so unrelated occurrences (e.g. dependency
-# version constraints) are left untouched.
+# It also promotes the CHANGELOG "## [Unreleased]" section to "## [X.Y.Z]" (with
+# a fresh empty [Unreleased] left on top and a compare link added), so the
+# release workflow can extract the notes for the new version.
+#
+# Idempotent: re-running with the current version is a no-op (manifest edits
+# re-apply cleanly and the CHANGELOG promotion is skipped once "## [X.Y.Z]"
+# exists). Each edit is anchored to the specific field so unrelated occurrences
+# (e.g. dependency version constraints) are left untouched.
 #
 # Usage: scripts/bump-version.sh X.Y.Z
 #
@@ -70,6 +75,35 @@ sed_inplace -E "s/^(VERSION[[:space:]]*:=[[:space:]]*).*/\1${VERSION}/" Makefile
 #     Both patterns anchor on the markdown-pipe cell boundary and the version
 #     token itself, not on emoji shortcodes, so they tolerate emoji changes.
 sed_inplace -E "s/^(\| (< )?)[0-9][0-9A-Za-z._-]*/\1${VERSION}/" SECURITY.md
+
+#   - CHANGELOG.md: promote the "## [Unreleased]" section to "## [${VERSION}]" so
+#     the release workflow (which extracts notes by version header) finds them.
+#     A fresh empty "## [Unreleased]" is left on top, and a compare link is added.
+#     Idempotent: a no-op when "## [${VERSION}]" already exists or there is no
+#     "## [Unreleased]" section. PREV is captured BEFORE the new header is
+#     inserted, so it is the previous released version.
+ESCAPED_VERSION="$(printf '%s' "$VERSION" | sed 's/\./\\./g')"
+if grep -q '^## \[Unreleased\]$' CHANGELOG.md && ! grep -qE "^## \[${ESCAPED_VERSION}\]" CHANGELOG.md; then
+  PREV="$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/^## \[([0-9][0-9A-Za-z.+-]*)\].*/\1/')"
+  REPO_URL="https://github.com/ggfevans/tree-sitter-hujson"
+  # Reseed an empty [Unreleased] and rename the old one to [VERSION].
+  awk -v ver="$VERSION" '
+    !promoted && /^## \[Unreleased\]$/ {
+      print "## [Unreleased]"; print ""; print "## [" ver "]"; promoted=1; next
+    }
+    { print }
+  ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+  # Add the compare link above the most recent version link (skip if no prior version).
+  if [ -n "$PREV" ]; then
+    awk -v ver="$VERSION" -v prev="$PREV" -v url="$REPO_URL" '
+      !linked && /^\[[0-9]+\.[0-9]+\.[0-9]+\]:/ {
+        print "[" ver "]: " url "/compare/v" prev "...v" ver; linked=1
+      }
+      { print }
+    ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+  fi
+  echo "Promoted CHANGELOG [Unreleased] -> [${VERSION}]${PREV:+ (compare v${PREV}...v${VERSION})}"
+fi
 
 echo "Bumped all manifests to ${VERSION}:"
 grep -H '"version"' package.json tree-sitter.json

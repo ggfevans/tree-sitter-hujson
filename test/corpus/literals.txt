@@ -112,6 +112,50 @@ Zero
   (number))
 
 ==================
+Negative zero
+==================
+
+-0
+
+---
+
+(document
+  (number))
+
+==================
+Negative zero float
+==================
+
+-0.5
+
+---
+
+(document
+  (number))
+
+==================
+Negative zero with fraction
+==================
+
+-0.0
+
+---
+
+(document
+  (number))
+
+==================
+Negative zero with exponent
+==================
+
+-0e1
+
+---
+
+(document
+  (number))
+
+==================
 True
 ==================
 

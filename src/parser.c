@@ -341,6 +341,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
       END_STATE();
     case 6:
       if (lookahead == '.') ADVANCE(19);
+      if (lookahead == '0') ADVANCE(41);
       if (('1' <= lookahead && lookahead <= '9')) ADVANCE(42);
       END_STATE();
     case 7:

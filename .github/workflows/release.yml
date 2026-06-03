@@ -125,9 +125,14 @@ jobs:
       # script and prebuildify use it. Linux/macOS are unaffected.
       - name: Update node-gyp for Visual Studio 2026 support
         if: runner.os == 'Windows'
+        shell: bash
         run: |
           npm install -g node-gyp@latest
-          npm config set node_gyp "$(npm root -g)\node-gyp\bin\node-gyp.js"
+          # Point npm (and the lifecycle `install` script) at the freshly
+          # installed node-gyp via the npm_config_node_gyp env var, which is read
+          # directly by npm — no `npm config set` key validation involved. The
+          # global install also puts this node-gyp on PATH for prebuildify.
+          echo "npm_config_node_gyp=$(npm root -g)/node-gyp/bin/node-gyp.js" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         # This project intentionally ships no lockfile (Cargo.lock / go.sum are

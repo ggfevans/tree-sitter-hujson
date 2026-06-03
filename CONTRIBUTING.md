@@ -5,14 +5,23 @@
 ### Prerequisites
 
 - Node.js 18+
-- `tree-sitter-cli` (`npm install -g tree-sitter-cli`)
+- `tree-sitter-cli`, pinned to the version CI uses:
+  `npm install -g tree-sitter-cli@0.26.9`
 
 ### Build and test
 
+Regenerate the parser at the pinned ABI (**14**) and run the corpus suite:
+
 ```bash
-tree-sitter generate
+make generate   # = tree-sitter generate --abi 14 (the ABI lives in the Makefile)
 tree-sitter test
 ```
+
+The ABI is pinned in one place — `TS_ABI` in the [`Makefile`](Makefile) — and CI
+runs `make generate` to verify the committed `src/` is reproducible. A bare
+`tree-sitter generate` (without `--abi 14`) regenerates at a newer ABI and will
+fail CI's no-op check, so always go through `make generate`. If you can't use
+`make`, run `tree-sitter generate --abi 14` directly.
 
 The corpus suite covers literals, objects, arrays, comments, trailing commas, degenerate inputs (empty, whitespace, BOM, unicode, deeply nested), and invalid inputs (the strictness-preserving rejections).
 

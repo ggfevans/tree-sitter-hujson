@@ -26,7 +26,7 @@
     "url": "git+https://github.com/ggfevans/tree-sitter-hujson.git"
   },
   "scripts": {
-    "build": "tree-sitter generate",
+    "build": "tree-sitter generate --abi 14",
     "test": "tree-sitter test",
     "parse": "tree-sitter parse",
     "install": "node-gyp-build",

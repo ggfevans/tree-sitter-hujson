@@ -17,7 +17,12 @@ endif
 
 TS ?= tree-sitter
 
-# ABI versioning
+# tree-sitter parser ABI — single source of truth for the generated parser.
+# Keep in sync with the "tree-sitter ABI" badge in README.md. CI calls
+# `make generate`, so this is the one place the ABI is pinned for codegen.
+TS_ABI ?= 14
+
+# shared-library versioning (SONAME), derived from the package VERSION
 SONAME_MAJOR := $(word 1,$(subst ., ,$(VERSION)))
 SONAME_MINOR := $(word 2,$(subst ., ,$(VERSION)))
 
@@ -83,8 +88,13 @@ $(LANGUAGE_NAME).pc: bindings/c/$(LANGUAGE_NAME).pc.in
 		-e 's|=$(PREFIX)|=$${prefix}|' \
 		-e 's|@PREFIX@|$(PREFIX)|' $< > $@
 
+# Canonical parser regeneration: reads grammar.js and writes src/ at the
+# pinned ABI. CI runs this exact target for its no-op check.
+generate:
+	$(TS) generate --abi $(TS_ABI)
+
 $(PARSER): $(SRC_DIR)/grammar.json
-	$(TS) generate --no-bindings $^
+	$(TS) generate --no-bindings --abi $(TS_ABI) $^
 
 install: all
 	install -d '$(DESTDIR)$(INCLUDEDIR)'/tree_sitter '$(DESTDIR)$(PCLIBDIR)' '$(DESTDIR)$(LIBDIR)'
@@ -109,4 +119,4 @@ clean:
 test:
 	$(TS) test
 
-.PHONY: all install uninstall clean test
+.PHONY: all generate install uninstall clean test

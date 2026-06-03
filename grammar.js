@@ -75,7 +75,7 @@ module.exports = grammar({
       const exponentPart = seq(choice('e', 'E'), optional(choice('+', '-')), decimalDigits);
 
       const decimalIntegerLiteral = choice(
-        '0',
+        seq(optional('-'), '0'),
         seq(optional('-'), /[1-9]/, optional(decimalDigits)),
       );
 

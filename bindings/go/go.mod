@@ -1,4 +1,4 @@
-module github.com/tree-sitter/tree-sitter-hujson
+module github.com/ggfevans/tree-sitter-hujson
 
 go 1.22
 

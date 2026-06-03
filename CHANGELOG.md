@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3]
+
+### CI
+
+- First release distributed to **PyPI** (OIDC Trusted Publishing) and
+  **crates.io**, completing multi-registry publishing alongside npm. No code
+  changes — this release activates the previously dormant PyPI and crates.io
+  publish jobs now that their publishers/credentials are configured.
+
 ## [0.2.2]
 
 ### CI
@@ -59,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Highlight, brackets, indents, and outline queries.
 - Corpus tests and an example `examples/sample.hujson`.
 
+[0.2.3]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.1.0...v0.2.0

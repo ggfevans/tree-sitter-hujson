@@ -1,0 +1,13 @@
+# CodeRabbit configuration: https://docs.coderabbit.ai/getting-started/configure-coderabbit
+#
+# golangci-lint is disabled. The only Go module in this repo lives in
+# bindings/go/ (an auto-generated tree-sitter binding), not the repo root.
+# CodeRabbit runs golangci-lint from the root, where there is no go.mod, so it
+# fails with "directory prefix . does not contain main module". A root go.work
+# does not help (golangci-lint still resolves ./... against the root, which is
+# not part of any module), and CodeRabbit cannot run the tool from a
+# subdirectory. The project does not lint the generated Go binding in its own CI.
+reviews:
+  tools:
+    golangci-lint:
+      enabled: false

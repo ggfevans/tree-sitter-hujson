@@ -84,7 +84,10 @@ sed_inplace -E "s/^(\| (< )?)[0-9][0-9A-Za-z._-]*/\1${VERSION}/" SECURITY.md
 #     inserted, so it is the previous released version.
 ESCAPED_VERSION="$(printf '%s' "$VERSION" | sed 's/\./\\./g')"
 if grep -q '^## \[Unreleased\]$' CHANGELOG.md && ! grep -qE "^## \[${ESCAPED_VERSION}\]" CHANGELOG.md; then
-  PREV="$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/^## \[([0-9][0-9A-Za-z.+-]*)\].*/\1/')"
+  # The grep exits non-zero when there is no prior version header (e.g. a first
+  # release); `|| true` keeps set -o pipefail / set -e from aborting here, so
+  # PREV is left empty and the compare link below is skipped.
+  PREV="$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/^## \[([0-9][0-9A-Za-z.+-]*)\].*/\1/' || true)"
   REPO_URL="https://github.com/ggfevans/tree-sitter-hujson"
   # Reseed an empty [Unreleased] and rename the old one to [VERSION].
   awk -v ver="$VERSION" '
@@ -93,13 +96,17 @@ if grep -q '^## \[Unreleased\]$' CHANGELOG.md && ! grep -qE "^## \[${ESCAPED_VER
     }
     { print }
   ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
-  # Add the compare link above the most recent version link (skip if no prior version).
+  # Add the compare link above the most recent version link (skipped when there
+  # is no prior version). The key regex matches any SemVer link key including
+  # prerelease suffixes (e.g. [1.0.0-rc.1]:), and the END block appends as a
+  # fallback when the link block has no version entry to anchor against.
   if [ -n "$PREV" ]; then
     awk -v ver="$VERSION" -v prev="$PREV" -v url="$REPO_URL" '
-      !linked && /^\[[0-9]+\.[0-9]+\.[0-9]+\]:/ {
+      !linked && /^\[[0-9][0-9A-Za-z.+-]*\]:/ {
         print "[" ver "]: " url "/compare/v" prev "...v" ver; linked=1
       }
       { print }
+      END { if (!linked) print "[" ver "]: " url "/compare/v" prev "...v" ver }
     ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
   fi
   echo "Promoted CHANGELOG [Unreleased] -> [${VERSION}]${PREV:+ (compare v${PREV}...v${VERSION})}"

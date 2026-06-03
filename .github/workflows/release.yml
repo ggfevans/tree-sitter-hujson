@@ -64,12 +64,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---------------------------------------------------------------------------
-  # preflight: detect which registry credentials are configured so each publish
-  # job below can skip (not fail) when its credential is absent. GitHub Actions
-  # cannot reference secrets.* in a job-level `if:`, so presence is surfaced here
-  # as job outputs. PyPI uses OIDC (no secret to detect) and is gated on the
-  # opt-in repo variable PYPI_TRUSTED_PUBLISHER ('true' once a PyPI trusted
-  # publisher exists for this repo/workflow).
+  # preflight: detect which registries are configured so each publish job below
+  # can skip (not fail) when it isn't set up. GitHub Actions cannot reference
+  # secrets.* in a job-level `if:`, so presence is surfaced here as job outputs.
+  # npm and PyPI both publish via OIDC Trusted Publishing (no secret to detect)
+  # and are gated on the opt-in repo variables NPM_TRUSTED_PUBLISHER /
+  # PYPI_TRUSTED_PUBLISHER ('true' once a trusted publisher exists for this
+  # repo/workflow). crates.io still authenticates with a token.
   # ---------------------------------------------------------------------------
   preflight:
     name: Detect configured registries
@@ -82,20 +83,21 @@ jobs:
     steps:
       - id: flags
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_FLAG: ${{ vars.NPM_TRUSTED_PUBLISHER }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           PYPI_FLAG: ${{ vars.PYPI_TRUSTED_PUBLISHER }}
         run: |
           {
-            echo "npm=$([ -n "$NPM_TOKEN" ] && echo true || echo false)"
+            echo "npm=$([ "$NPM_FLAG" = "true" ] && echo true || echo false)"
             echo "crates=$([ -n "$CARGO_REGISTRY_TOKEN" ] && echo true || echo false)"
             echo "pypi=$([ "$PYPI_FLAG" = "true" ] && echo true || echo false)"
           } >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------
   # npm: build native prebuilds across linux/macOS/windows, then publish with
-  # provenance. Auth via secrets.NPM_TOKEN. These jobs are SKIPPED (not failed)
-  # until the NPM_TOKEN secret is configured.
+  # provenance via OIDC Trusted Publishing (no stored token). These jobs are
+  # SKIPPED (not failed) until the repo variable NPM_TRUSTED_PUBLISHER is set to
+  # 'true' (set it once an npm trusted publisher exists for this repo/workflow).
   # ---------------------------------------------------------------------------
   npm-prebuild:
     name: npm prebuild (${{ matrix.os }})
@@ -150,7 +152,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # required for npm provenance
+      id-token: write # required for OIDC Trusted Publishing and provenance
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -160,6 +162,11 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
+
+      # OIDC Trusted Publishing requires npm >= 11.5.1; the npm bundled with
+      # Node 22 is older. Upgrade before publishing.
+      - name: Upgrade npm for OIDC Trusted Publishing (>= 11.5.1)
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         # This project intentionally ships no lockfile (Cargo.lock / go.sum are
@@ -175,9 +182,10 @@ jobs:
           merge-multiple: true
 
       - name: Publish to npm
+        # Auth is via OIDC Trusted Publishing (id-token: write above) — no
+        # NODE_AUTH_TOKEN. npm detects the OIDC environment automatically and
+        # attaches build provenance.
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ---------------------------------------------------------------------------
   # PyPI: build wheels (via the [tool.cibuildwheel] config) and an sdist, then

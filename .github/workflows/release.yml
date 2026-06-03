@@ -117,6 +117,18 @@ jobs:
         with:
           node-version: "22"
 
+      # The npm bundled with Node 22 ships node-gyp 11.x, which cannot detect
+      # Visual Studio 2026 (v18) — now preinstalled on the windows-latest runner
+      # image — and aborts native compilation with `unknown version "undefined"`.
+      # node-gyp >= 12.1.0 adds VS 2026 support (nodejs/node-gyp#3282). Install a
+      # current node-gyp and point npm at it so both the `install` lifecycle
+      # script and prebuildify use it. Linux/macOS are unaffected.
+      - name: Update node-gyp for Visual Studio 2026 support
+        if: runner.os == 'Windows'
+        run: |
+          npm install -g node-gyp@latest
+          npm config set node_gyp "$(npm root -g)\node-gyp\bin\node-gyp.js"
+
       - name: Install dependencies
         # This project intentionally ships no lockfile (Cargo.lock / go.sum are
         # gitignored too), so use `npm install` rather than `npm ci`, which

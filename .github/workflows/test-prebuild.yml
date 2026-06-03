@@ -1,0 +1,47 @@
+name: test-prebuild (TEMPORARY)
+
+# TEMPORARY verification workflow — mirrors the npm-prebuild job from release.yml
+# (including the node-gyp VS2026 fix) but does NOT publish anything. Used to
+# confirm the Windows native build goes green before cutting a real release tag.
+# DELETE this file before merging the fix.
+
+on:
+  push:
+    branches:
+      - fix/windows-node-gyp-vs2026
+
+permissions:
+  contents: read
+
+jobs:
+  prebuild:
+    name: prebuild (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version: "22"
+
+      - name: Update node-gyp for Visual Studio 2026 support
+        if: runner.os == 'Windows'
+        run: |
+          npm install -g node-gyp@latest
+          npm config set node_gyp "$(npm root -g)\node-gyp\bin\node-gyp.js"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build prebuilds
+        run: npm run prebuildify
+
+      - name: Show built prebuilds
+        run: ls -R prebuilds/
+        shell: bash

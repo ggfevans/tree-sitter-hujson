@@ -22,7 +22,7 @@ The grammar registers both the `.hujson` and `.jwcc` file extensions.
 
 ## Installation
 
-The grammar is published to npm, PyPI, and crates.io. Each package exposes the compiled language for use with that ecosystem's tree-sitter bindings.
+The grammar is published to [npm](https://www.npmjs.com/package/tree-sitter-hujson), [PyPI](https://pypi.org/project/tree-sitter-hujson/), and [crates.io](https://crates.io/crates/tree-sitter-hujson). Each package exposes the compiled language for use with that ecosystem's tree-sitter bindings.
 
 Each example needs the `tree-sitter` runtime for that language alongside this grammar.
 

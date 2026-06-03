@@ -30,13 +30,16 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Update node-gyp for Visual Studio 2026 support
+      - name: Upgrade npm for Visual Studio 2026 support (node-gyp >= 12.1.0)
         if: runner.os == 'Windows'
+        run: npm install -g npm@latest
+
+      - name: Show npm / node-gyp versions
         shell: bash
         run: |
-          npm install -g node-gyp@latest
-          echo "npm_config_node_gyp=$(npm root -g)/node-gyp/bin/node-gyp.js" >> "$GITHUB_ENV"
-          echo "--- node-gyp on PATH:"; node-gyp --version
+          echo "npm: $(npm --version)"
+          npm explore npm -g -- node -p "require('node-gyp/package.json').version" 2>/dev/null \
+            | sed 's/^/bundled node-gyp: /' || true
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund

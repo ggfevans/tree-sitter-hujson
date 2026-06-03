@@ -75,4 +75,4 @@ echo "Bumped all manifests to ${VERSION}:"
 grep -H '"version"' package.json tree-sitter.json
 grep -HE '^version[[:space:]]*=' Cargo.toml pyproject.toml
 grep -HE '^VERSION[[:space:]]*:=' Makefile
-grep -E "\|.*${VERSION}" SECURITY.md
+count=$(grep -cE "\|.*${VERSION}" SECURITY.md) && [ "$count" -eq 2 ]

@@ -2,13 +2,14 @@
 #
 # bump-version.sh — single source of truth for the project version.
 #
-# Updates the version string in all five manifests together so they can never
+# Updates the version string in all six manifests together so they can never
 # drift apart:
 #   - package.json      ("version": "X.Y.Z")
 #   - tree-sitter.json  ("version": "X.Y.Z" under "metadata")
 #   - Cargo.toml        (version = "X.Y.Z" in [package])
 #   - pyproject.toml    (version = "X.Y.Z" in [project])
 #   - Makefile          (VERSION := X.Y.Z)
+#   - SECURITY.md       (supported version row in the table)
 #
 # Idempotent: re-running with the current version is a no-op. Each edit is
 # anchored to the specific field so unrelated occurrences (e.g. dependency
@@ -63,7 +64,15 @@ sed_inplace -E "s/^(version[[:space:]]*=[[:space:]]*\")[^\"]*(\")/\1${VERSION}\2
 #   - Makefile: the `VERSION := X.Y.Z` assignment at the top.
 sed_inplace -E "s/^(VERSION[[:space:]]*:=[[:space:]]*).*/\1${VERSION}/" Makefile
 
+#   - SECURITY.md: both version cells in the supported-versions table.
+#     Row 1: the latest release version (anchored to a table cell starting with a digit).
+#     Row 2: the "< previous.version" cell (anchored to a table cell starting with "< ").
+#     Both patterns anchor on the markdown-pipe cell boundary and the version
+#     token itself, not on emoji shortcodes, so they tolerate emoji changes.
+sed_inplace -E "s/^(\| (< )?)[0-9][0-9A-Za-z._-]*/\1${VERSION}/" SECURITY.md
+
 echo "Bumped all manifests to ${VERSION}:"
 grep -H '"version"' package.json tree-sitter.json
 grep -HE '^version[[:space:]]*=' Cargo.toml pyproject.toml
 grep -HE '^VERSION[[:space:]]*:=' Makefile
+grep -E "\|.*${VERSION}" SECURITY.md

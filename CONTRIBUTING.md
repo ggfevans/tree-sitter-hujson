@@ -18,11 +18,18 @@ The corpus suite covers literals, objects, arrays, comments, trailing commas, de
 
 ## Releasing
 
-Releases are tag-driven. Bump the version in every manifest at once with
-`scripts/bump-version.sh X.Y.Z`, add a matching `## [X.Y.Z]` entry to
-[`CHANGELOG.md`](CHANGELOG.md), then push a `vX.Y.Z` tag. The
-[`Release`](.github/workflows/release.yml) workflow validates the tag, creates
-the GitHub Release from the changelog entry, and publishes the bindings.
+Releases are tag-driven, and changes accumulate under the `## [Unreleased]`
+heading in [`CHANGELOG.md`](CHANGELOG.md) as they land. To cut a release:
+
+1. Run `scripts/bump-version.sh X.Y.Z`. This updates the version in every
+   manifest and **promotes the `## [Unreleased]` section to `## [X.Y.Z]`** (a
+   fresh empty `## [Unreleased]` is left on top and a compare link is added), so
+   the release notes are ready for that version.
+2. Push a `vX.Y.Z` tag.
+
+The [`Release`](.github/workflows/release.yml) workflow then validates the tag,
+creates the GitHub Release from the `## [X.Y.Z]` changelog entry, and publishes
+the bindings.
 
 Each registry publish job runs **only** when that registry is configured,
 otherwise it is skipped (the GitHub Release always succeeds):

@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1]
+
+### CI
+
+- Upgrade npm on the Windows prebuild runner so it uses a bundled node-gyp
+  `>= 12.1.0`, which can detect **Visual Studio 2026** (now preinstalled on the
+  `windows-latest` image). This unblocks the Windows native prebuild and the
+  project's first npm publish. (#22)
+
 ## [0.2.0]
 
 ### Changed
@@ -41,5 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Highlight, brackets, indents, and outline queries.
 - Corpus tests and an example `examples/sample.hujson`.
 
+[0.2.1]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ggfevans/tree-sitter-hujson/releases/tag/v0.1.0

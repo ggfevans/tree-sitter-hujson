@@ -7,12 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0]
+
 ### Added
 
+- **First stable release.** The HuJSON (JWCC) grammar and its public node types
+  (`document`, `object`, `array`, `pair`, `string`, `number`, `comment`, and the
+  literal nodes) are now considered stable; future breaking changes will bump the
+  major version per [Semantic Versioning](https://semver.org/).
 - **Upstream sync process** documented in `UPSTREAM-SYNC.md`, establishing a
   quarterly cadence against `tree-sitter-json` (spec §11.3). First sync check
   confirmed no upstream grammar changes since our fork point
-  (`001c28d7`).
+  (`001c28d7`). (#4)
+- **`SECURITY.md`** with a release-driven, auto-updated supported-version
+  table. (#27)
+
+### Fixed
+
+- **Negative-zero numbers** (`-0`, `-0.5`, `-0.0`, `-0e1`) now parse as valid
+  `number` nodes instead of producing `ERROR`s. HuJSON is a strict superset of
+  JSON, so every valid JSON number must parse. (#33)
+- Corrected the Go binding's `go.mod` module path so the package resolves via
+  `go get`. (#28)
+
+### Changed
+
+- The tree-sitter **ABI 14** pin is now a single source of truth (`TS_ABI` in the
+  `Makefile`); `make generate` is the canonical parser-regeneration command, and
+  CI verifies the committed `src/` is reproducible against it. (#35)
+
+### Documentation
+
+- Pre-v1.0 README revision with status badges, and the contributor guide split
+  out into `CONTRIBUTING.md`. (#24)
+- `scripts/bump-version.sh` now promotes the `## [Unreleased]` changelog section
+  to the released version (with a fresh `[Unreleased]` and compare link). (#32)
 
 ## [0.2.3]
 
@@ -77,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Highlight, brackets, indents, and outline queries.
 - Corpus tests and an example `examples/sample.hujson`.
 
+[1.0.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.3...v1.0.0
 [0.2.3]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.0...v0.2.1

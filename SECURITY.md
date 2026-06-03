@@ -4,8 +4,8 @@
 
 | Version | Supported |
 | ------- | ---------- |
-| 0.2.3   | :white_check_mark: |
-| < 0.2.3 | :x: |
+| 1.0.0   | :white_check_mark: |
+| < 1.0.0 | :x: |
 
 Only the latest release receives security fixes. Older versions should upgrade.
 

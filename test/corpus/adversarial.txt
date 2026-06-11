@@ -1,0 +1,214 @@
+==================
+Comment-like content inside string values and keys
+==================
+
+{"// not a comment": "/* also not */", "*/": "//"}
+
+---
+
+(document
+  (object
+    (pair
+      key: (string
+        (string_content))
+      value: (string
+        (string_content)))
+    (pair
+      key: (string
+        (string_content))
+      value: (string
+        (string_content)))))
+
+==================
+Comment between key and colon and between colon and value
+==================
+
+{"a" /* c */ : /* d */ 1}
+
+---
+
+(document
+  (object
+    (pair
+      key: (string
+        (string_content))
+      (comment)
+      (comment)
+      value: (number))))
+
+==================
+Nested block comment is ERROR
+:error
+==================
+
+/* /* */ */
+
+---
+
+==================
+Unterminated block comment is ERROR
+:error
+==================
+
+/* unterminated
+
+---
+
+==================
+Invalid escape backslash-x is ERROR
+:error
+==================
+
+"bad \x escape"
+
+---
+
+==================
+Invalid escape backslash-q is ERROR
+:error
+==================
+
+"bad \q escape"
+
+---
+
+==================
+Short unicode escape is ERROR
+:error
+==================
+
+"short \u12"
+
+---
+
+==================
+Raw control character in string is ERROR
+:error
+==================
+
+"a	b"
+
+---
+
+==================
+Plus-signed number is ERROR
+:error
+==================
+
++1
+
+---
+
+==================
+Leading-dot number is ERROR
+:error
+==================
+
+.5
+
+---
+
+==================
+Negative leading-dot number is ERROR
+:error
+==================
+
+-.5
+
+---
+
+==================
+Trailing-dot number is ERROR
+:error
+==================
+
+1.
+
+---
+
+==================
+Trailing-dot number with exponent is ERROR
+:error
+==================
+
+1.e5
+
+---
+
+==================
+Exponent without digits is ERROR
+:error
+==================
+
+1e
+
+---
+
+==================
+Bare minus sign is ERROR
+:error
+==================
+
+-
+
+---
+
+==================
+Exponent with explicit plus sign
+==================
+
+1e+5
+
+---
+
+(document
+  (number))
+
+==================
+Plain exponent
+==================
+
+1e5
+
+---
+
+(document
+  (number))
+
+==================
+Negative fraction with negative exponent
+==================
+
+-0.5e-3
+
+---
+
+(document
+  (number))
+
+==================
+Multiple root values are ERROR
+:error
+==================
+
+1 2
+
+---
+
+==================
+Leading zero is ERROR
+:error
+==================
+
+01
+
+---
+
+==================
+Leading zeros are ERROR
+:error
+==================
+
+007
+
+---

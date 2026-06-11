@@ -9,6 +9,13 @@
  * Modification: commaSep/commaSep1 helpers tolerate an optional trailing comma
  * per the JWCC (JSON With Commas and Comments) specification.
  *
+ * Note on string structure: this grammar uses a named `string_content` rule
+ * (a repeat1 containing nested `escape_sequence` children), a layout that
+ * predates upstream commit 001c28d — upstream now uses a hidden
+ * `_string_content` with `string_content`/`escape_sequence` as siblings.
+ * The nested shape is a deliberate divergence (zed-hujson queries depend on
+ * it); see UPSTREAM-SYNC.md's divergence table.
+ *
  * @see {@link https://github.com/tailscale/hujson|HuJSON}
  * @see {@link https://nigeltao.github.io/blog/2021/json-with-commas-comments.html|JWCC spec}
  */
@@ -29,7 +36,7 @@ module.exports = grammar({
   ],
 
   rules: {
-    document: $ => repeat($._value),
+    document: $ => optional($._value),
 
     _value: $ => choice(
       $.object,
@@ -61,7 +68,7 @@ module.exports = grammar({
     ),
 
     string_content: $ => repeat1(choice(
-      token.immediate(prec(1, /[^\\"\n]+/)),
+      token.immediate(prec(1, /[^\\"\u0000-\u001f]+/)),
       $.escape_sequence,
     )),
 
@@ -80,9 +87,8 @@ module.exports = grammar({
       );
 
       const decimalLiteral = choice(
-        seq(decimalIntegerLiteral, '.', optional(decimalDigits), optional(exponentPart)),
+        seq(decimalIntegerLiteral, '.', decimalDigits, optional(exponentPart)),
         seq(decimalIntegerLiteral, optional(exponentPart)),
-        seq(optional('-'), '.', decimalDigits, optional(exponentPart)),
       );
 
       return token(decimalLiteral);

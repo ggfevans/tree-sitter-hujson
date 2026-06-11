@@ -20,6 +20,8 @@ _obj/
 dist/
 *.egg-info
 *.whl
+__pycache__/
+*.py[co]
 
 # C artifacts
 *.a
@@ -36,3 +38,6 @@ dist/
 *.wasm
 *.obj
 *.o
+
+# Git worktrees
+.worktree/

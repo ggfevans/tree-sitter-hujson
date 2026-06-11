@@ -109,6 +109,10 @@ if grep -q '^## \[Unreleased\]$' CHANGELOG.md && ! grep -qE "^## \[${ESCAPED_VER
       END { if (!linked) print "[" ver "]: " url "/compare/v" prev "...v" ver }
     ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
   fi
+  # Re-point the [Unreleased] link reference at the new tag so the fresh
+  # "## [Unreleased]" header keeps a live compare link. A no-op when the
+  # link line is absent.
+  sed_inplace -E "s|^\[Unreleased\]:.*|[Unreleased]: ${REPO_URL}/compare/v${VERSION}...HEAD|" CHANGELOG.md
   echo "Promoted CHANGELOG [Unreleased] -> [${VERSION}]${PREV:+ (compare v${PREV}...v${VERSION})}"
 fi
 

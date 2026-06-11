@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a parsing bug or other defect in the HuJSON grammar
+labels: ["bug"]
+body:
+  - type: textarea
+    id: input
+    attributes:
+      label: Input HuJSON
+      description: Minimal HuJSON snippet that reproduces the problem.
+      render: jsonc
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected parse output
+      description: What you expected `tree-sitter parse` to produce.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual parse output
+      description: What `tree-sitter parse` actually produced (include any ERROR/MISSING nodes).
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `tree-sitter --version`, plus the tree-sitter-hujson version in use.
+      placeholder: "tree-sitter 0.26.9, tree-sitter-hujson 1.0.1"
+    validations:
+      required: true

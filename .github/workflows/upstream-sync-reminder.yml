@@ -1,0 +1,48 @@
+name: Upstream Sync Reminder
+
+# Opens a quarterly issue reminding the maintainer to run the upstream sync
+# procedure documented in UPSTREAM-SYNC.md (cadence per spec §11.3).
+
+on:
+  schedule:
+    # 09:00 UTC on the 1st of January, April, July, and October.
+    - cron: "0 9 1 1,4,7,10 *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  open-sync-issue:
+    name: Open quarterly sync issue
+    runs-on: ubuntu-latest
+    steps:
+      # Uses the runner-preinstalled gh CLI only — no repository checkout and
+      # no third-party actions.
+      - name: Create sync issue unless one is already open
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          title="Quarterly upstream sync check (tree-sitter-json)"
+          existing=$(gh issue list --repo "$REPO" --state open \
+            --search "in:title \"$title\"" \
+            --json title --jq "[.[] | select(.title == \"$title\")] | length")
+          if [ "$existing" -gt 0 ]; then
+            echo "An open sync issue already exists — skipping."
+            exit 0
+          fi
+          gh issue create --repo "$REPO" \
+            --title "$title" \
+            --body "$(cat <<'EOF'
+          Quarterly reminder to check [tree-sitter-json](https://github.com/tree-sitter/tree-sitter-json) for upstream changes.
+
+          Follow the procedure in [UPSTREAM-SYNC.md](https://github.com/ggfevans/tree-sitter-hujson/blob/main/UPSTREAM-SYNC.md):
+
+          1. Compare upstream HEAD against the last-synced commit (recorded in `grammar.js`).
+          2. If they match, close this issue with a "no changes" sync record.
+          3. If they differ, diff the grammars, merge relevant changes (preserving the JWCC modifications), run `tree-sitter test`, and update the fork provenance.
+
+          *Opened automatically by `.github/workflows/upstream-sync-reminder.yml`.*
+          EOF
+          )"

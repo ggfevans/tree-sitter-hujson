@@ -28,7 +28,7 @@ When merging upstream changes, **preserve** these intentional divergences from t
 ## Sync Schedule
 
 - **Cadence**: Quarterly (every ~90 days)
-- **Trigger**: Manual or scheduled issue creation
+- **Trigger**: The scheduled workflow `.github/workflows/upstream-sync-reminder.yml` opens a sync issue on the 1st of January, April, July, and October (or run it manually via `workflow_dispatch`)
 - **Responsible**: Repository maintainer
 
 ## Sync Procedure

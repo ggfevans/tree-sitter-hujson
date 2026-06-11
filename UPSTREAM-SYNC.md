@@ -20,8 +20,11 @@ When merging upstream changes, **preserve** these intentional divergences from t
 | Comments | `//` and `/* */` supported (same structure) | `//` and `/* */` supported | Both support comments; see single-line regex diff below |
 | Trailing commas | Not allowed | Optional trailing comma in `commaSep1` | JWCC spec |
 | `string_content` | Hidden (`_string_content`) with inlined pattern | Public named node with `repeat1(choice(...))` | Outline query support |
+| String node shape | `string_content` and `escape_sequence` are siblings under `string` (since upstream 001c28d) | `escape_sequence` nodes nest *inside* `string_content` — `(string (string_content (escape_sequence)))` | Predates upstream 001c28d; zed-hujson queries depend on the nested shape. Do **not** flatten during sync (#53) |
+| `string_content` pattern | `/[^\\"\n]+/` (admits raw control chars) | `/[^\\"\u0000-\u001f]+/` (rejects raw U+0000–U+001F) | RFC 8259 §7 forbids unescaped control characters (#44) |
 | `escape_sequence` | `(\"\|\\|\/\|b\|f\|n\|r\|t\|u)` | `(\"\|\\|\/\|b\|f\|n\|r\|t\|u[0-9a-fA-F]{4})` | Correctness: requires 4 hex digits after `\u` |
-| Number literal | `signedInteger` in exponent; no `-.5` | `optional(choice('+','-'))` in exponent; allows `-.5` | JWCC tolerance |
+| Number literal | Allows leading-dot (`.5`) and trailing-dot (`1.`) literals | Leading-dot alternative removed; fraction digits mandatory after `.` | RFC 8259 §6: `frac = decimal-point 1*DIGIT`; HuJSON adds nothing to number syntax (#42) |
+| `document` root | `repeat($._value)` (zero or more roots) | `optional($._value)` (at most one root; empty file OK) | HuJSON requires exactly one root value; `repeat` masked leading-zero rejection (`01` parsed as two clean siblings) (#43) |
 | Single-line comment regex | `/.*/` (greedy dot) | `/[^\r\n]*/` (explicit newline exclusion) | Prevents `\r` edge case |
 | `commaSep1` / `commaSep` | Standard separator | Adds `optional(',')` for trailing comma | JWCC spec |
 

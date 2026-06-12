@@ -47,14 +47,13 @@ otherwise it is skipped (the GitHub Release always succeeds):
 | --- | --- | --- |
 | npm | OIDC Trusted Publishing (no stored token) | repo **variable** `NPM_TRUSTED_PUBLISHER` = `true`, plus an [npm trusted publisher](https://docs.npmjs.com/trusted-publishers/) for this repo + `release.yml` |
 | PyPI | OIDC Trusted Publishing (no stored token) | repo **variable** `PYPI_TRUSTED_PUBLISHER` = `true`, plus a [PyPI trusted publisher](https://docs.pypi.org/trusted-publishers/) for this repo + `release.yml` |
-| crates.io | API token | repo **secret** `CARGO_REGISTRY_TOKEN` |
+| crates.io | OIDC Trusted Publishing (no stored token) | repo **variable** `CRATES_TRUSTED_PUBLISHER` = `true`, plus a [crates.io trusted publisher](https://crates.io/docs/trusted-publishing) for this repo + `release.yml` |
 
 The Go, Swift, and C bindings are consumed directly from the git tag, so they
 need no registry publish step.
 
 To publish a registry you enabled *after* a tag was already cut, re-run the
-`Release` workflow for that tag: the now-present variable or secret flips its
-job on.
+`Release` workflow for that tag: the now-present variable flips its job on.
 
 ### Prebuild coverage
 

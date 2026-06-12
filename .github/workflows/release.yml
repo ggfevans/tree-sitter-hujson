@@ -28,6 +28,27 @@ jobs:
           fi
           echo "VERSION=${TAG#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Verify tag matches manifest versions
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          # scripts/bump-version.sh keeps the manifests in sync with each
+          # other, but nothing stops tagging the wrong commit — so assert the
+          # tag version matches every manifest before publishing anything.
+          FAIL=0
+          check() {
+            if [ "$2" != "$VERSION" ]; then
+              echo "::error file=$1::$1 version '$2' does not match tag version '$VERSION'"
+              FAIL=1
+            fi
+          }
+          check package.json "$(node -p 'require("./package.json").version')"
+          check tree-sitter.json "$(node -p 'require("./tree-sitter.json").metadata.version')"
+          check Cargo.toml "$(sed -nE 's/^version = "([^"]*)".*/\1/p' Cargo.toml | head -n 1)"
+          check pyproject.toml "$(sed -nE 's/^version = "([^"]*)".*/\1/p' pyproject.toml | head -n 1)"
+          check Makefile "$(sed -nE 's/^VERSION := (.*)$/\1/p' Makefile | head -n 1)"
+          exit "$FAIL"
+
       - name: Extract changelog entry
         id: changelog
         run: |
@@ -65,12 +86,11 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # preflight: detect which registries are configured so each publish job below
-  # can skip (not fail) when it isn't set up. GitHub Actions cannot reference
-  # secrets.* in a job-level `if:`, so presence is surfaced here as job outputs.
-  # npm and PyPI both publish via OIDC Trusted Publishing (no secret to detect)
-  # and are gated on the opt-in repo variables NPM_TRUSTED_PUBLISHER /
-  # PYPI_TRUSTED_PUBLISHER ('true' once a trusted publisher exists for this
-  # repo/workflow). crates.io still authenticates with a token.
+  # can skip (not fail) when it isn't set up.
+  # npm, PyPI, and crates.io all publish via OIDC Trusted Publishing (no stored
+  # secrets) and are gated on the opt-in repo variables NPM_TRUSTED_PUBLISHER /
+  # PYPI_TRUSTED_PUBLISHER / CRATES_TRUSTED_PUBLISHER ('true' once a trusted
+  # publisher exists for this repo/workflow).
   # ---------------------------------------------------------------------------
   preflight:
     name: Detect configured registries
@@ -84,12 +104,12 @@ jobs:
       - id: flags
         env:
           NPM_FLAG: ${{ vars.NPM_TRUSTED_PUBLISHER }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CRATES_FLAG: ${{ vars.CRATES_TRUSTED_PUBLISHER }}
           PYPI_FLAG: ${{ vars.PYPI_TRUSTED_PUBLISHER }}
         run: |
           {
             echo "npm=$([ "$NPM_FLAG" = "true" ] && echo true || echo false)"
-            echo "crates=$([ -n "$CARGO_REGISTRY_TOKEN" ] && echo true || echo false)"
+            echo "crates=$([ "$CRATES_FLAG" = "true" ] && echo true || echo false)"
             echo "pypi=$([ "$PYPI_FLAG" = "true" ] && echo true || echo false)"
           } >> "$GITHUB_OUTPUT"
 
@@ -150,6 +170,7 @@ jobs:
     needs: [npm-prebuild, preflight]
     if: ${{ needs.preflight.outputs.npm == 'true' }}
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
       id-token: write # required for OIDC Trusted Publishing and provenance
@@ -252,6 +273,7 @@ jobs:
     needs: [pypi-wheels, pypi-sdist, preflight]
     if: ${{ needs.preflight.outputs.pypi == 'true' }}
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
       id-token: write # required for PyPI Trusted Publishing (OIDC)
@@ -269,29 +291,37 @@ jobs:
           packages-dir: dist/
 
   # ---------------------------------------------------------------------------
-  # crates.io: publish the Rust binding. Auth via secrets.CARGO_REGISTRY_TOKEN.
-  # SKIPPED until that secret is configured.
+  # crates.io: publish the Rust binding via OIDC Trusted Publishing — no stored
+  # token. SKIPPED until the repo variable CRATES_TRUSTED_PUBLISHER is set to
+  # 'true' (set it once a crates.io trusted publisher exists for this
+  # repo/workflow).
   # ---------------------------------------------------------------------------
   crates-publish:
     name: crates.io publish
     needs: [release, preflight]
     if: ${{ needs.preflight.outputs.crates == 'true' }}
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
+      id-token: write # required for crates.io Trusted Publishing (OIDC)
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # stable
+      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
         with:
           toolchain: stable
+
+      - name: Authenticate with crates.io (OIDC)
+        id: auth
+        uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe # v1.0.4
 
       - name: Publish to crates.io
         run: cargo publish -p tree-sitter-hujson
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
   # ---------------------------------------------------------------------------
   # Go / Swift / C bindings are consumed directly via the git tag

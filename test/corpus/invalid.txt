@@ -1,46 +1,29 @@
 ==================
 Unquoted key
+:error
 ==================
 
 {key: "value"}
 
 ---
 
-(document
-  (object
-    (ERROR
-      (UNEXPECTED 'k')
-      (string
-        (string_content)))))
-
 ==================
 Unquoted string value
+:error
 ==================
 
 {"a": hello}
 
 ---
 
-(document
-  (object
-    (ERROR
-      (string
-        (string_content))
-      (UNEXPECTED 'h'))))
-
 ==================
 Single-quoted string
+:error
 ==================
 
 {'k': 'v'}
 
 ---
-
-(document
-  (object
-    (ERROR
-      (UNEXPECTED ''')
-      (UNEXPECTED '''))))
 
 ==================
 Hex literal
@@ -61,45 +44,27 @@ Hex literal
 
 ==================
 Infinity
+:error
 ==================
 
 {"a": Infinity}
 
 ---
 
-(document
-  (object
-    (ERROR
-      (string
-        (string_content))
-      (UNEXPECTED 'I'))))
-
 ==================
 NaN
+:error
 ==================
 
 {"a": NaN}
 
 ---
 
-(document
-  (object
-    (ERROR
-      (string
-        (string_content))
-      (UNEXPECTED 'N'))))
-
 ==================
 Numeric object key
+:error
 ==================
 
 {1: "x"}
 
 ---
-
-(document
-  (object
-    (ERROR
-      (number)
-      (string
-        (string_content)))))

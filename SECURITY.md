@@ -52,5 +52,6 @@ parses. Key considerations:
 ## Dependency Security
 
 - Minimal dependency footprint (tree-sitter runtime + language bindings).
-- Automated dependency scanning via GitHub Dependabot (npm + Cargo, weekly).
+- Automated dependency scanning via GitHub Dependabot (npm, Cargo, pip +
+  GitHub Actions, weekly).
 - Pre-release testing against the tree-sitter test suite on every CI run.

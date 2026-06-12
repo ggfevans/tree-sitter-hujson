@@ -1,33 +1,40 @@
 //! This crate provides Hujson language support for the [tree-sitter][] parsing library.
 //!
-//! Typically, you will use the [language][language func] function to add this language to a
+//! Typically, you will use the [LANGUAGE][] constant to add this language to a
 //! tree-sitter [Parser][], and then use the parser to parse some code:
 //!
 //! ```
 //! let code = r#"
 //! "#;
 //! let mut parser = tree_sitter::Parser::new();
-//! parser.set_language(&tree_sitter_hujson::language()).expect("Error loading Hujson grammar");
+//! let language = tree_sitter_hujson::LANGUAGE;
+//! parser
+//!     .set_language(&language.into())
+//!     .expect("Error loading Hujson parser");
 //! let tree = parser.parse(code, None).unwrap();
 //! assert!(!tree.root_node().has_error());
 //! ```
 //!
-//! [Language]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Language.html
-//! [language func]: fn.language.html
 //! [Parser]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Parser.html
 //! [tree-sitter]: https://tree-sitter.github.io/
 
-use tree_sitter::Language;
+use tree_sitter_language::LanguageFn;
 
 extern "C" {
-    fn tree_sitter_hujson() -> Language;
+    fn tree_sitter_hujson() -> *const ();
 }
+
+/// The tree-sitter [`LanguageFn`][LanguageFn] for this grammar.
+///
+/// [LanguageFn]: https://docs.rs/tree-sitter-language/*/tree_sitter_language/struct.LanguageFn.html
+pub const LANGUAGE: LanguageFn = unsafe { LanguageFn::from_raw(tree_sitter_hujson) };
 
 /// Get the tree-sitter [Language][] for this grammar.
 ///
 /// [Language]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Language.html
-pub fn language() -> Language {
-    unsafe { tree_sitter_hujson() }
+#[deprecated(since = "1.1.0", note = "use the LANGUAGE constant instead")]
+pub fn language() -> tree_sitter::Language {
+    LANGUAGE.into()
 }
 
 /// The content of the [`node-types.json`][] file for this grammar.
@@ -48,7 +55,16 @@ mod tests {
     fn test_can_load_grammar() {
         let mut parser = tree_sitter::Parser::new();
         parser
+            .set_language(&super::LANGUAGE.into())
+            .expect("Error loading Hujson parser");
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn test_deprecated_language_fn() {
+        let mut parser = tree_sitter::Parser::new();
+        parser
             .set_language(&super::language())
-            .expect("Error loading Hujson grammar");
+            .expect("Error loading Hujson parser");
     }
 }

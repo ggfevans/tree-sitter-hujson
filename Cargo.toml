@@ -17,7 +17,10 @@ include = ["bindings/rust/*", "grammar.js", "queries/*", "src/*", "tree-sitter.j
 path = "bindings/rust/lib.rs"
 
 [dependencies]
-tree-sitter = ">=0.22.6"
+# Kept as a regular dependency only to back the deprecated `language()` shim;
+# new consumers should use the `LANGUAGE` constant via `tree-sitter-language`.
+tree-sitter = ">=0.23, <0.27"
+tree-sitter-language = "0.1"
 
 [build-dependencies]
 cc = "1.0.87"

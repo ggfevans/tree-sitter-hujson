@@ -24,7 +24,7 @@ Homepage = "https://github.com/ggfevans/tree-sitter-hujson"
 Repository = "https://github.com/ggfevans/tree-sitter-hujson"
 
 [project.optional-dependencies]
-core = ["tree-sitter~=0.25"]
+core = ["tree-sitter~=0.23"]
 
 [tool.cibuildwheel]
 build = "cp38-*"

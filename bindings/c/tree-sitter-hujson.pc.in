@@ -3,7 +3,7 @@ libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
 Name: tree-sitter-hujson
-Description: Hujson grammar for tree-sitter
+Description: HuJSON (JWCC) grammar for tree-sitter — JSON with comments and trailing commas
 URL: @URL@
 Version: @VERSION@
 Requires: @REQUIRES@

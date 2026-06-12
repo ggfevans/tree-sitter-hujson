@@ -55,3 +55,11 @@ need no registry publish step.
 To publish a registry you enabled *after* a tag was already cut, re-run the
 `Release` workflow for that tag: the now-present variable or secret flips its
 job on.
+
+### Prebuild coverage
+
+The npm tarball ships native prebuilds for **darwin-arm64**, **linux-x64**, and
+**win32-x64** only. On other platforms (darwin-x64, linux-arm64, win32-arm64,
+…) `node-gyp-build` falls back to compiling the parser from source at install
+time, which works anywhere a C toolchain is available. This coverage is
+intentional; additional prebuild targets are not currently planned.

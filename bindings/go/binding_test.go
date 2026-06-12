@@ -3,8 +3,8 @@ package tree_sitter_hujson_test
 import (
 	"testing"
 
-	tree_sitter "github.com/smacker/go-tree-sitter"
-	"github.com/ggfevans/tree-sitter-hujson"
+	tree_sitter "github.com/tree-sitter/go-tree-sitter"
+	tree_sitter_hujson "github.com/ggfevans/tree-sitter-hujson/bindings/go"
 )
 
 func TestCanLoadGrammar(t *testing.T) {

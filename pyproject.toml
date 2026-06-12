@@ -4,8 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree-sitter-hujson"
-description = "Hujson grammar for tree-sitter"
+description = "HuJSON (JWCC) grammar for tree-sitter — JSON with comments and trailing commas"
 version = "1.0.1"
+authors = [{ name = "Gareth Evans", email = "hi@gvns.ca" }]
 keywords = ["incremental", "parsing", "tree-sitter", "hujson"]
 classifiers = [
   "Intended Audience :: Developers",
@@ -20,9 +21,10 @@ readme = "README.md"
 
 [project.urls]
 Homepage = "https://github.com/ggfevans/tree-sitter-hujson"
+Repository = "https://github.com/ggfevans/tree-sitter-hujson"
 
 [project.optional-dependencies]
-core = ["tree-sitter~=0.21"]
+core = ["tree-sitter~=0.25"]
 
 [tool.cibuildwheel]
 build = "cp38-*"

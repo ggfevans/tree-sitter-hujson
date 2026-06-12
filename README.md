@@ -62,7 +62,7 @@ cargo add tree-sitter tree-sitter-hujson
 ```rust
 let mut parser = tree_sitter::Parser::new();
 parser
-    .set_language(&tree_sitter_hujson::language())
+    .set_language(&tree_sitter_hujson::LANGUAGE.into())
     .expect("loading HuJSON grammar");
 ```
 

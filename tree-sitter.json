@@ -4,14 +4,14 @@
       "name": "hujson",
       "scope": "source.hujson",
       "file-types": ["hujson", "jwcc"],
-      "injection-regex": "hujson",
+      "injection-regex": "^hujson$",
       "highlights": "queries/highlights.scm"
     }
   ],
   "metadata": {
     "version": "1.0.1",
     "license": "MIT",
-    "description": "HuJSON (JWCC) grammar for tree-sitter",
+    "description": "HuJSON (JWCC) grammar for tree-sitter — JSON with comments and trailing commas",
     "authors": [
       {
         "name": "Gareth Evans",

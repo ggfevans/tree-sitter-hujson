@@ -1,6 +1,6 @@
 [package]
 name = "tree-sitter-hujson"
-description = "Hujson grammar for tree-sitter"
+description = "HuJSON (JWCC) grammar for tree-sitter — JSON with comments and trailing commas"
 version = "1.0.1"
 license = "MIT"
 readme = "README.md"
@@ -11,7 +11,7 @@ edition = "2021"
 autoexamples = false
 
 build = "bindings/rust/build.rs"
-include = ["bindings/rust/*", "grammar.js", "queries/*", "src/*"]
+include = ["bindings/rust/*", "grammar.js", "queries/*", "src/*", "tree-sitter.json"]
 
 [lib]
 path = "bindings/rust/lib.rs"

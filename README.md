@@ -91,6 +91,10 @@ Forked from [`tree-sitter/tree-sitter-json`](https://github.com/tree-sitter/tree
 
 2. **String-only object keys.** Upstream tree-sitter-json accepts numeric object keys (`choice($.string, $.number)`); HuJSON restricts keys to strings to match standard JSON, so bare numeric keys are parse errors. This tightened in v0.2.0.
 
+### AI disclosure
+
+This project discloses AI involvement following the [ai-disclosure convention](https://github.com/ggfevans/ai-disclosure). See [`AI_DISCLOSURE.md`](AI_DISCLOSURE.md) for the repo-level default, and per-file headers for any overrides.
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development setup, the test suite, and the release process.

@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **Python minimum raised to 3.10.** `requires-python` is now `>=3.10` and wheels are built as `cp310-abi3` via cibuildwheel 4.0, which dropped CPython 3.8. Python 3.8 and 3.9 are end-of-life, and the `[core]` extra already required `tree-sitter ~=0.25` (Python ≥3.10), so this aligns the package's stated minimum with what it actually needs. (#70)
+
+### Documentation
+
+- Added `AI_DISCLOSURE.md` following the [ai-disclosure convention](https://github.com/ggfevans/ai-disclosure), linked from the README, and added a project `CLAUDE.md` documenting repo conventions. (#71, #74)
+
+### CI
+
+- Committed `package-lock.json` and `Cargo.lock` and switched CI installs to `npm ci` for reproducibility; pinned `tree-sitter-cli` as a devDependency instead of an unpinned global install. (#73, #75)
+- Scoped the CodeQL workflow's token permissions to the analyze job, leaving the top-level `GITHUB_TOKEN` read-only. (#72)
+- Bumped pinned build/CI dependencies: `gh-action-pypi-publish` to 1.14.0 and the `setuptools` build requirement to `>=82.0.1`. (#62, #64)
+
 ## [1.1.0]
 
 ### Changed

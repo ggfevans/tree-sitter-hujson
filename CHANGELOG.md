@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0]
+
+### Changed
+
+- **Grammar tightened to RFC 8259 strictness.** HuJSON/JWCC adds nothing to JSON
+  number or string syntax, so inputs that are invalid JSON now surface `ERROR`
+  nodes instead of parsing cleanly: numbers require digits after the decimal
+  point and no longer allow a leading dot (`.5`, `-.5`, `1.`, `1.e5`); a document
+  has exactly one root value, which also enforces the no-leading-zeros rule
+  (`01`, `007`, and multiple sibling values like `1 2`); and strings reject raw
+  control characters U+0000–U+001F. Valid JSON and the public node types are
+  unaffected. (#42, #43, #44, #53)
+- **Rust binding** now exposes `LANGUAGE` as a `tree_sitter_language::LanguageFn`
+  (the current tree-sitter template API), decoupling the crate from
+  tree-sitter's internal `Language` representation. The old `language()` function
+  is **deprecated** but retained as a shim and will be removed in 2.0; the
+  `tree-sitter` dependency is now bounded (`>=0.23, <0.27`). (#47)
+- **Runtime dependency pins bumped** to current tree-sitter: the npm
+  `tree-sitter` peer dependency is now `^0.25.0` and the Python `core` extra is
+  `~=0.25`. (#48)
+- **Go binding restructured** to a repository-root `go.mod` module — import it as
+  `github.com/ggfevans/tree-sitter-hujson/bindings/go` — using the official
+  `tree-sitter/go-tree-sitter` runtime. (#55)
+- **Python binding** migrated to the `PyCapsule` language API for compatibility
+  with py-tree-sitter 0.22+. (#55)
+- `npm run build` now delegates to `make generate`, so the ABI 14 pin
+  (`TS_ABI` in the `Makefile`) is the single source of truth. (#45)
+
+### Added
+
+- `tree-sitter.json` is now shipped in the npm and crates.io packages so
+  CLI 0.24+ tooling can read grammar metadata from installed packages. (#55)
+
+### Fixed
+
+- Anchored the injection regex to `^hujson$`, unified the package description
+  across every manifest, and added `authors` and a `Repository` URL to the
+  Python package metadata. (#55)
+- Restored the upstream copyright notice and polished repo infrastructure. (#41)
+
+### CI
+
+- Bindings are now smoke-built on Linux, macOS, and Windows on every PR
+  (Node `require`, `cargo check`, Python wheel, `go test`), and a `tree-sitter
+  fuzz` job runs against the corpus. (#52, #54)
+- Added CodeQL code scanning (C/C++, JavaScript, Python, Actions) and an OpenSSF
+  Scorecard workflow, and extended Dependabot to the GitHub Actions and pip
+  ecosystems. (#50, #51)
+- **Hardened the release path:** the release workflow verifies the tag matches
+  every manifest version before publishing, crates.io now publishes via OIDC
+  trusted publishing (no stored token), and all publish jobs run behind a
+  protected `release` environment. The default branch requires PRs and green
+  checks, and `v*` tag creation is restricted. (#46, #49, #56)
+
 ## [1.0.1]
 
 ### CI
@@ -117,7 +171,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Highlight, brackets, indents, and outline queries.
 - Corpus tests and an example `examples/sample.hujson`.
 
-[Unreleased]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.3...v1.0.0
 [0.2.3]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.2...v0.2.3

@@ -15,13 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: "22"
 
-      - name: Install tree-sitter-cli
-        run: npm install -g tree-sitter-cli@0.26.9
+      # tree-sitter-cli is a pinned devDependency installed from the committed
+      # package-lock.json; expose its bin so `tree-sitter` and `make generate`
+      # (which calls $(TS) = tree-sitter) resolve to the locked version.
+      - name: Install pinned tree-sitter CLI and deps
+        run: |
+          npm ci --no-audit --no-fund
+          echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Generate parser (must be a no-op against committed files)
         run: |
@@ -131,8 +138,12 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install tree-sitter-cli
-        run: npm install -g tree-sitter-cli@0.26.9
+      # tree-sitter-cli is a pinned devDependency installed from the committed
+      # package-lock.json; expose its bin so `tree-sitter` resolves to it.
+      - name: Install pinned tree-sitter CLI and deps
+        run: |
+          npm ci --no-audit --no-fund
+          echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Fuzz parser
         run: tree-sitter fuzz --iterations 50 --edits 3

@@ -150,10 +150,8 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install dependencies
-        # This project intentionally ships no lockfile (Cargo.lock / go.sum are
-        # gitignored too), so use `npm install` rather than `npm ci`, which
-        # requires a committed package-lock.json.
-        run: npm install --no-audit --no-fund
+        # Clean, reproducible install from the committed package-lock.json.
+        run: npm ci --no-audit --no-fund
 
       - name: Build prebuilds
         run: npm run prebuildify
@@ -190,10 +188,8 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install dependencies
-        # This project intentionally ships no lockfile (Cargo.lock / go.sum are
-        # gitignored too), so use `npm install` rather than `npm ci`, which
-        # requires a committed package-lock.json.
-        run: npm install --no-audit --no-fund
+        # Clean, reproducible install from the committed package-lock.json.
+        run: npm ci --no-audit --no-fund
 
       - name: Download all prebuilds
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1

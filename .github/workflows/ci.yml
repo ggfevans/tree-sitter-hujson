@@ -80,11 +80,10 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Node smoke — build and load the binding
-        # This project intentionally ships no lockfile, so use `npm install`
-        # rather than `npm ci` (which requires a committed package-lock.json).
+        # Clean, reproducible install from the committed package-lock.json.
         shell: bash
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           node -e "require('./bindings/node')"
 
       # Pinned explicitly (same step as release.yml) rather than relying on the

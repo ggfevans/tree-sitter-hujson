@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0]
+
 ### Changed
 
 - **Python minimum raised to 3.10.** `requires-python` is now `>=3.10` and wheels are built as `cp310-abi3` via cibuildwheel 4.0, which dropped CPython 3.8. Python 3.8 and 3.9 are end-of-life, and the `[core]` extra already required `tree-sitter ~=0.25` (Python ≥3.10), so this aligns the package's stated minimum with what it actually needs. (#70)
@@ -119,7 +121,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Highlight, brackets, indents, and outline queries.
 - Corpus tests and an example `examples/sample.hujson`.
 
-[Unreleased]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/ggfevans/tree-sitter-hujson/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ggfevans/tree-sitter-hujson/compare/v0.2.3...v1.0.0

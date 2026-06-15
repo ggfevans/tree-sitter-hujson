@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### CI
 
-- Pinned the `npm install -g npm` upgrade steps in the CI and release workflows to an exact version (`11.17.0`) instead of `@latest`, so build and publish runs are reproducible and not exposed to a compromised npm release — resolves the OSSF Scorecard Pinned-Dependencies finding.
+- Bumped the CI and release workflows from Node 22 to Node 24 (LTS), whose bundled npm 11.9.0 already meets the node-gyp ≥ 12.1.0 (Visual Studio 2026) and OIDC Trusted Publishing (npm ≥ 11.5.1) minimums, and removed the now-unnecessary `npm install -g npm` self-upgrade steps — eliminating the unpinnable npm command that OSSF Scorecard flags under Pinned-Dependencies.
 
 ## [1.2.0]
 

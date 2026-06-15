@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: "22"
+          node-version: "24"
 
       # tree-sitter-cli is a pinned devDependency installed from the committed
       # package-lock.json; expose its bin so `tree-sitter` and `make generate`
@@ -74,20 +74,10 @@ jobs:
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: "22"
-
-      # The npm bundled with Node 22 ships node-gyp 11.x, which cannot detect
-      # Visual Studio 2026 (v18) — now preinstalled on the windows-latest runner
-      # image — and aborts native compilation with `unknown version "undefined"`.
-      # node-gyp >= 12.1.0 adds VS 2026 support (nodejs/node-gyp#3282) and is
-      # bundled from npm 11.6.3 onward, so upgrading npm is enough for both the
-      # `install` lifecycle script and prebuildify. Linux/macOS are unaffected.
-      - name: Upgrade npm for Visual Studio 2026 support (node-gyp >= 12.1.0)
-        if: runner.os == 'Windows'
-        # Pinned (not @latest) for a reproducible build that is not exposed to a
-        # compromised npm release — OSSF Scorecard Pinned-Dependencies. 11.17.0
-        # satisfies the >= 11.6.3 node-gyp/VS2026 requirement; bump manually.
-        run: npm install -g npm@11.17.0
+          # Node 24 (LTS) bundles npm 11.9.0, whose node-gyp >= 12.1.0 detects
+          # Visual Studio 2026 on the windows-latest runner — no npm self-upgrade
+          # step needed (and none to trip OSSF Scorecard's Pinned-Dependencies).
+          node-version: "24"
 
       - name: Node smoke — build and load the binding
         # Clean, reproducible install from the committed package-lock.json.
@@ -139,7 +129,7 @@ jobs:
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: "22"
+          node-version: "24"
 
       # tree-sitter-cli is a pinned devDependency installed from the committed
       # package-lock.json; expose its bin so `tree-sitter` resolves to it.

@@ -84,7 +84,10 @@ jobs:
       # `install` lifecycle script and prebuildify. Linux/macOS are unaffected.
       - name: Upgrade npm for Visual Studio 2026 support (node-gyp >= 12.1.0)
         if: runner.os == 'Windows'
-        run: npm install -g npm@latest
+        # Pinned (not @latest) for a reproducible build that is not exposed to a
+        # compromised npm release — OSSF Scorecard Pinned-Dependencies. 11.17.0
+        # satisfies the >= 11.6.3 node-gyp/VS2026 requirement; bump manually.
+        run: npm install -g npm@11.17.0
 
       - name: Node smoke — build and load the binding
         # Clean, reproducible install from the committed package-lock.json.

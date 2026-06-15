@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### CI
+
+- Pinned the `npm install -g npm` upgrade steps in the CI and release workflows to an exact version (`11.17.0`) instead of `@latest`, so build and publish runs are reproducible and not exposed to a compromised npm release — resolves the OSSF Scorecard Pinned-Dependencies finding.
+
 ## [1.2.0]
 
 ### Changed

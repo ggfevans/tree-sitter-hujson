@@ -11,6 +11,9 @@
 #   - Makefile          (VERSION := X.Y.Z)
 #   - SECURITY.md       (supported version row in the table)
 #
+# It also syncs Cargo.lock (the workspace package entry) to the new version so a
+# release commit never carries a stale lockfile.
+#
 # It also promotes the CHANGELOG "## [Unreleased]" section to "## [X.Y.Z]" (with
 # a fresh empty [Unreleased] left on top and a compare link added), so the
 # release workflow can extract the notes for the new version.
@@ -65,6 +68,17 @@ sed_inplace -E "s/^([[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\")[^\"]*(\"
 #     a dependency entry like `tree-sitter = ">=0.22.6"`.
 sed_inplace -E "s/^(version[[:space:]]*=[[:space:]]*\")[^\"]*(\")/\1${VERSION}\2/" Cargo.toml
 sed_inplace -E "s/^(version[[:space:]]*=[[:space:]]*\")[^\"]*(\")/\1${VERSION}\2/" pyproject.toml
+
+#   - Cargo.lock: sync the workspace package entry to the new Cargo.toml version.
+#     Without this the release commit carries a stale lockfile, which makes the
+#     crates.io step (`cargo publish --locked`) fail on a dirty working tree when
+#     cargo regenerates the lock during publish. Requires cargo; warn if absent.
+if command -v cargo >/dev/null 2>&1; then
+  cargo update -p tree-sitter-hujson >/dev/null 2>&1 \
+    || echo "warning: 'cargo update -p tree-sitter-hujson' failed; sync Cargo.lock manually before committing" >&2
+else
+  echo "warning: cargo not found; Cargo.lock not synced — run 'cargo update -p tree-sitter-hujson' before committing" >&2
+fi
 
 #   - Makefile: the `VERSION := X.Y.Z` assignment at the top.
 sed_inplace -E "s/^(VERSION[[:space:]]*:=[[:space:]]*).*/\1${VERSION}/" Makefile

@@ -19,7 +19,7 @@ path = "bindings/rust/lib.rs"
 [dependencies]
 # Kept as a regular dependency only to back the deprecated `language()` shim;
 # new consumers should use the `LANGUAGE` constant via `tree-sitter-language`.
-tree-sitter = ">=0.23, <0.27"
+tree-sitter = ">=0.23, <0.28"
 tree-sitter-language = "0.1"
 
 [build-dependencies]

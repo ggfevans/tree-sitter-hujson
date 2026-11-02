@@ -2,7 +2,7 @@
  * @file HuJSON (JWCC) grammar for tree-sitter
  * @author Max Brunsfeld <maxbrunsfeld@gmail.com> (original tree-sitter-json)
  * @author Amaan Qureshi <amaanq12@gmail.com> (original tree-sitter-json)
- * @author Gareth Evans <gareth.gwilym.frederick.evans@gmail.com> (HuJSON fork)
+ * @author Gareth Evans (HuJSON fork)
  * @license MIT
  *
  * Forked from tree-sitter-json at commit 001c28d7a29832b06b0e831ec77845553c89b56d.
